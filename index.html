@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineCircle | GitHub AI Edition</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --card: #161b22;
+            --border: #30363d;
+            --primary: #238636; /* GitHub Green */
+            --accent: #79c0ff;
+            --text: #c9d1d9;
+            --star: #e3b341;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- Header --- */
+        header {
+            width: 100%;
+            padding: 1rem 2rem;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            box-sizing: border-box;
+            align-items: center;
+        }
+
+        .logo { font-weight: bold; font-size: 1.5rem; color: var(--accent); }
+
+        /* --- Entry Screen --- */
+        #entry-screen {
+            margin-top: 100px;
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            width: 350px;
+            text-align: center;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: white;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover { filter: brightness(1.1); }
+
+        /* --- Main Dashboard --- */
+        #main-app { display: none; width: 90%; max-width: 800px; margin-top: 2rem; }
+
+        .section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        /* --- Star Rating --- */
+        .star-rating {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+            gap: 5px;
+            margin: 10px 0;
+        }
+
+        .star-rating input { display: none; }
+        .star-rating label {
+            font-size: 30px;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .star-rating label:hover,
+        .star-rating label:hover ~ label,
+        .star-rating input:checked ~ label {
+            color: var(--star);
+        }
+
+        /* --- Feed --- */
+        .review-card {
+            background: #0d1117;
+            border: 1px solid var(--border);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+
+        .review-header { display: flex; justify-content: space-between; align-items: center; }
+        .movie-title { color: var(--accent); font-weight: bold; font-size: 1.2rem; }
+        .stars-display { color: var(--star); }
+
+        /* --- AI Output --- */
+        #ai-response {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(121, 192, 255, 0.1);
+            border-left: 4px solid var(--accent);
+            font-style: italic;
+            display: none;
+        }
+
+        #ai-loading { display: none; color: var(--accent); font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">CineCircle</div>
+        <div id="user-info" style="display:none;">
+            <span id="display-username"></span>
+            <button onclick="logout()" style="width: auto; padding: 5px 10px; margin-left: 10px; background: #da3633;">Exit</button>
+        </div>
+    </header>
+
+    <div id="entry-screen">
+        <h2>Join the Club</h2>
+        <input type="text" id="username" placeholder="Your Name">
+        <input type="password" id="gh-token" placeholder="GitHub Token (for AI)">
+        <p style="font-size: 0.7rem; color: #888;">Token is stored locally in your browser only.</p>
+        <button onclick="login()">Enter App</button>
+    </div>
+
+    <div id="main-app">
+        
+        <div class="section">
+            <h3>🤖 GitHub AI Matchmaker</h3>
+            <p style="font-size: 0.9rem;">Ask the AI for a recommendation based on your mood.</p>
+            <input type="text" id="ai-prompt" placeholder="e.g. A movie like Inception but spookier...">
+            <button onclick="getAIRecommendation()" style="background: #3fb950;">Ask GitHub AI</button>
+            <div id="ai-loading">Consulting the oracle...</div>
+            <div id="ai-response"></div>
+        </div>
+
+        <div class="section">
+            <h3>✍️ Write a Review</h3>
+            <input type="text" id="movie-name" placeholder="Movie Name">
+            
+            <div class="star-rating">
+                <input type="radio" name="stars" id="star5" value="5"><label for="star5">★</label>
+                <input type="radio" name="stars" id="star4" value="4"><label for="star4">★</label>
+                <input type="radio" name="stars" id="star3" value="3"><label for="star3">★</label>
+                <input type="radio" name="stars" id="star2" value="2"><label for="star2">★</label>
+                <input type="radio" name="stars" id="star1" value="1"><label for="star1">★</label>
+            </div>
+
+            <textarea id="review-body" style="width:100%; height:80px; background:var(--bg); color:white; border:1px solid var(--border); padding:10px; border-radius:6px; box-sizing:border-box;" placeholder="What did you think?"></textarea>
+            <button onclick="saveReview()" style="margin-top:10px;">Post to Feed</button>
+        </div>
+
+        <div class="section">
+            <h3>🌐 Recent Reviews</h3>
+            <div id="feed"></div>
+        </div>
+    </div>
+
+    <script>
+        // Check for existing session
+        window.onload = () => {
+            const session = localStorage.getItem('cine_session');
+            if(session) {
+                const data = JSON.parse(session);
+                showApp(data.name);
+            }
+            renderFeed();
+        };
+
+        function login() {
+            const name = document.getElementById('username').value;
+            const token = document.getElementById('gh-token').value;
+
+            if(!name || !token) {
+                alert("Please enter both your name and a GitHub Token!");
+                return;
+            }
+
+            localStorage.setItem('cine_session', JSON.stringify({name, token}));
+            showApp(name);
+        }
+
+        function logout() {
+            localStorage.removeItem('cine_session');
+            location.reload();
+        }
+
+        function showApp(name) {
+            document.getElementById('entry-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+            document.getElementById('user-info').style.display = 'flex';
+            document.getElementById('display-username').innerText = "Hello, " + name;
+        }
+
+        async function getAIRecommendation() {
+            const prompt = document.getElementById('ai-prompt').value;
+            const session = JSON.parse(localStorage.getItem('cine_session'));
+            const responseBox = document.getElementById('ai-response');
+            const loading = document.getElementById('ai-loading');
+
+            if(!prompt) return;
+
+            loading.style.display = 'block';
+            responseBox.style.display = 'none';
+
+            try {
+                const response = await fetch("https://models.inference.ai.azure.com/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${session.token}`
+                    },
+                    body: JSON.stringify({
+                        messages: [
+                            { role: "system", content: "You are a witty movie expert for a book-club style movie group." },
+                            { role: "user", content: `Give me a unique movie recommendation based on this: ${prompt}` }
+                        ],
+                        model: "gpt-4o",
+                        max_tokens: 150
+                    })
+                });
+
+                const data = await response.json();
+                responseBox.innerText = data.choices[0].message.content;
+                responseBox.style.display = 'block';
+            } catch (err) {
+                alert("AI Error: Make sure your GitHub Token is valid!");
+                console.error(err);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function saveReview() {
+            const movie = document.getElementById('movie-name').value;
+            const text = document.getElementById('review-body').value;
+            const starInput = document.querySelector('input[name="stars"]:checked');
+            const session = JSON.parse(localStorage.getItem('cine_session'));
+
+            if(!movie || !text || !starInput) {
+                alert("Fill in the movie name, rating, and your review!");
+                return;
+            }
+
+            const review = {
+                user: session.name,
+                movie,
+                text,
+                stars: starInput.value,
+                date: new Date().toLocaleDateString()
+            };
+
+            let feed = JSON.parse(localStorage.getItem('cine_feed') || '[]');
+            feed.unshift(review);
+            localStorage.setItem('cine_feed', JSON.stringify(feed));
+
+            // Clear inputs
+            document.getElementById('movie-name').value = '';
+            document.getElementById('review-body').value = '';
+            starInput.checked = false;
+
+            renderFeed();
+        }
+
+        function renderFeed() {
+            const feedContainer = document.getElementById('feed');
+            const feed = JSON.parse(localStorage.getItem('cine_feed') || '[]');
+
+            feedContainer.innerHTML = feed.map(item => `
+                <div class="review-card">
+                    <div class="review-header">
+                        <span class="movie-title">${item.movie}</span>
+                        <span class="stars-display">${"★".repeat(item.stars)}${"☆".repeat(5-item.stars)}</span>
+                    </div>
+                    <p style="margin: 5px 0; font-size: 0.9rem;">${item.text}</p>
+                    <div style="font-size: 0.7rem; color: #888;">By ${item.user} on ${item.date}</div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
